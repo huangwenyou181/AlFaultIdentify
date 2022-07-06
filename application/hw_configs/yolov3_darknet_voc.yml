@@ -1,0 +1,301 @@
+architecture: YOLOv3
+use_gpu: true
+max_iters: 200000
+log_smooth_window: 20
+save_dir: output
+snapshot_iter: 5000
+metric: VOC
+map_type: 11point
+pretrain_weights: https://paddle-imagenet-models-name.bj.bcebos.com/DarkNet53_pretrained.tar
+weights: output/yolov3_darknet_voc/model_final
+num_classes: 30
+use_fine_grained_loss: false
+
+YOLOv3:
+  backbone: DarkNet
+  yolo_head: YOLOv3Head
+
+DarkNet:
+  norm_type: sync_bn
+  norm_decay: 0.
+  depth: 53
+
+YOLOv3Head:
+  anchor_masks: [[6, 7, 8], [3, 4, 5], [0, 1, 2]]
+  anchors: [[10, 13], [16, 30], [33, 23],
+            [30, 61], [62, 45], [59, 119],
+            [116, 90], [156, 198], [373, 326]]
+  norm_decay: 0.
+  yolo_loss: YOLOv3Loss
+  nms:
+    background_label: -1
+    keep_top_k: 100
+    nms_threshold: 0.45
+    nms_top_k: 1000
+    normalized: false
+    score_threshold: 0.01
+
+YOLOv3Loss:
+  # batch_size here is only used for fine grained loss, not used
+  # for training batch_size setting, training batch_size setting
+  # is in configs/yolov3_reader.yml TrainReader.batch_size, batch
+  # size here should be set as same value as TrainReader.batch_size
+  batch_size: 32
+  ignore_thresh: 0.7
+  label_smooth: false
+
+LearningRate:
+  base_lr: 0.001
+  schedulers:
+  - !PiecewiseDecay
+    gamma: 0.1
+    milestones:
+    - 120000
+    - 150000
+  - !LinearWarmup
+    start_factor: 0.
+    steps: 1000
+
+OptimizerBuilder:
+  optimizer:
+    momentum: 0.9
+    type: Momentum
+  regularizer:
+    factor: 0.0005
+    type: L2
+
+# 模型训练集设置参考
+# 训练、验证、测试使用的数据配置主要区别在数据路径、模型输入、数据增强参数设置
+# 如果使用 yolov3_reader.yml，下面的参数设置优先级高，会覆盖yolov3_reader.yml中的参数设置，对于用自定义数据建议将数据配置文件写到下面。
+# _READER_: 'yolov3_reader.yml'
+
+TrainReader:
+  # 训练过程中模型的输入设置
+  # 包括图片，图片长宽高等基本信息，图片id，标记的目标框，类别等信息
+  # 不同算法，不同数据集 inputs_def 不同，有的算法需要限制输入图像尺寸，有的不需要###
+  inputs_def:
+    # YOLO 输入图像大小，必须是32的整数倍###
+    # 注意需要与下面的图像尺寸的设置保存一致###
+    image_shape: [3, 608, 608]
+    # 不同算法，不同数据集 fields 不同###
+    # YOLO系列 VOC格式数据： ['image', 'gt_bbox', 'gt_class', 'gt_score']，且需要设置num_max_boxes
+    # YOLO系列 COCO格式数据：['image', 'gt_bbox', 'gt_class', 'gt_score']，且需要设置num_max_boxes
+
+    # FasterRCNN 系列 COCO格式数据：['image', 'im_info', 'im_id', 'gt_bbox', 'gt_class', 'is_crowd']
+
+    # MaskRCNN 系列 COCO格式数据：['image', 'im_info', 'im_id', 'gt_bbox', 'gt_class', 'is_crowd', 'gt_mask']
+
+    # AnchorFree 系列 COCO格式数据：['image', 'im_id', 'gt_bbox', 'gt_class', 'tl_heatmaps', 'br_heatmaps', 'tl_regrs', 'br_regrs', 'tl_tags', 'br_tags', 'tag_masks']
+
+    # VOC数据格式需要读取的字段，注意与COCO不同。注意TrainReader、EvalReader、TestReader字段略有不同
+    fields: ['image', 'gt_bbox', 'gt_class', 'gt_score']
+
+    # 仅YOLO系列需要设置
+    num_max_boxes: 50
+
+  # 训练数据集路径
+  dataset:
+    # 指定数据集格式
+    !VOCDataSet
+    #dataset/xxx/
+    #├── annotations
+    #│   ├── xxx1.xml
+    #│   ├── xxx2.xml
+    #│   ├── xxx3.xml
+    #│   |   ...
+    #├── images
+    #│   ├── xxx1.png
+    #│   ├── xxx2.png
+    #│   ├── xxx3.png
+    #│   |   ...
+    #├── label_list.txt (用户自定义必须提供，且文件名称必须是label_list.txt。当使用VOC数据且use_default_label=true时，可不提供 )
+    #├── train.txt (训练数据集文件列表, ./images/xxx1.png ./Annotations/xxx1.xml)
+    #└── valid.txt (测试数据集文件列表)
+
+    # 数据集相对路径
+    dataset_dir: dataset/voc
+    # 标记文件名
+    anno_path: train.txt
+
+    # 对于VOC、COCO等比赛数据集，可以不指定类别标签文件，use_default_label可以是true。
+    # 对于用户自定义数据，如果是VOC格式数据，use_default_label必须要设置成false，且需要提供label_list.txt。如果是COCO格式数据，不需要设置这个参数。
+    use_default_label: false
+
+    # 是否包含背景类，若with_background=true，num_classes需要+1
+    # YOLO 系列with_background必须是false，FasterRCNN系列是true ###
+    with_background: false
+
+
+  # 1个GPU的batch size，默认为1。需要注意：每个iter迭代会运行batch_size * device_num张图片
+  batch_size: 32
+  # 共享内存bufsize，若内存有限，请设置小一些。
+  bufsize: 2
+  # 选择是否打乱所有样本的顺序
+  shuffle: true
+  # drop_empty 建议设置为true
+  drop_empty: true
+  # drop_last 如果最后一个batch的图片数量为奇数，选择是否丢掉这个batch不进行训练。
+  # 注意，在某些情况下，drop_last=false时训练过程中可能会出错，建议训练时都设置为true
+  drop_last: true
+  # mixup_epoch
+  mixup_epoch: -1
+  # 选择是否使用多进程，默认为false
+  use_process: false
+  # 若选用多进程，设置使用多进程/线程的数目，默认为4，建议与CPU核数一致
+  # 开启多进程后，占用内存会成倍增加，根据内存设置###
+  worker_num: 4
+
+
+  # 数据预处理和数据增强部分，此部分设置要特别注意###
+  # 不同算法对数据的预处理流程不同，建议使用对应算法默认的数据处理流程。
+  # 比如，YOLO、FPN算法，要求输入图像尺寸必须是32的整数倍
+
+  # 以下是对一个batch中的每单张图片做的数据增强
+  sample_transforms:
+  # 读取Image图像为numpy数组
+  # 可以选择将图片从BGR转到RGB，可以选择对一个batch中的图片做mixup增强
+  - !DecodeImage
+    to_rgb: true
+    with_mixup: false
+  # box 坐标归一化，仅仅YOLO系列算法需要
+  - !NormalizeBox {}
+  # 以prob概率随机反转
+  - !RandomFlipImage
+    is_normalized: true
+    prob: 0.5
+  # 归一化
+  - !NormalizeImage
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+    is_scale: true
+    is_channel_first: false
+  # 如果 bboxes 数量小于 num_max_boxes，填充值为0的 box，仅仅YOLO系列算法需要
+  - !PadBox
+    num_max_boxes: 50
+  # 坐标格式转化，从XYXY转成XYWH，仅仅YOLO系列算法需要
+  - !BboxXYXY2XYWH {}
+
+  # 以下是对一个batch中的所有图片同时做的数据增强
+  batch_transforms:
+  # 多尺度训练时，从list中随机选择一个尺寸，对一个batch数据同时同时resize
+  - !RandomShape
+    sizes: [608]
+  # channel_first
+  - !Permute
+    channel_first: true
+    to_bgr: false
+
+
+EvalReader:
+  # 评估过程中模型的输入设置
+  # 1个GPU的batch size，默认为1。需要注意：每个iter迭代会运行batch_size * device_num张图片
+  batch_size: 1
+  # 共享内存bufsize，共享内存中训练样本数量是： bufsize * batch_size * 2 张图
+  bufsize: 1
+  # shuffle=false
+  shuffle: false
+  # 一般的评估时，batch_size=1，drop_empty可设置成 false
+  drop_empty: false
+  # 一般的评估时，batch_size=1，drop_last可设置成 false
+  drop_last: false
+  # 选择是否使用多进程，默认为false
+  use_process: false
+  # 若选用多进程，设置使用多进程/线程的数目，默认为4，建议与CPU核数一致
+  # 开启多进程后，占用内存会成倍增加，根据内存设置 ###
+  worker_num: 1
+
+  inputs_def:
+    # 图像尺寸与上保持一致
+    image_shape: [3, 608, 608]
+    # fields 字段
+    fields: ['image', 'im_size', 'im_id', 'gt_bbox', 'gt_class', 'is_difficult']
+    num_max_boxes: 50
+
+  # 评估数据集路径
+  dataset:
+    !VOCDataSet
+    dataset_dir: dataset/voc
+    # 评估文件列表
+    anno_path: valid.txt
+
+    # 对于VOC、COCO等比赛数据集，可以不指定类别标签文件，use_default_label可以是true。
+    # 对于用户自定义数据，如果是VOC格式数据，use_default_label必须要设置成false，且需要提供label_list.txt。如果是COCO格式数据，不需要设置这个参数。
+    use_default_label: false
+
+    # 是否包含背景类，若with_background=true，num_classes需要+1
+    # YOLO 系列with_background必须是false，FasterRCNN系列是true ###
+    with_background: false
+
+  # 单张图的 transforms
+  sample_transforms:
+    # DecodeImage
+    - !DecodeImage
+      to_rgb: true
+
+    # 与上面图像尺寸保持一致 ###
+    - !ResizeImage
+      target_size: 608
+      interp: 2
+    # 图像归一化
+    - !NormalizeImage
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+      is_scale: true
+      is_channel_first: false
+    # 如果 bboxes 数量小于 num_max_boxes，填充值为0的 box
+    - !PadBox
+      num_max_boxes: 50
+    - !Permute
+      to_bgr: false
+      channel_first: true
+
+TestReader:
+  # 测试过程中模型的输入设置
+  # 预测时 batch_size设置为1
+  batch_size: 1
+  # 一般的预测时，batch_size=1，drop_empty可设置成 false
+  drop_empty: false
+  # 一般的预测时，batch_size=1，drop_last可设置成 false
+  drop_last: false
+
+
+  inputs_def:
+    # 预测时输入图像尺寸，与上面图像尺寸保持一致
+    image_shape: [3, 608, 608]
+    # 预测时需要读取字段
+    # fields 字段
+    fields: ['image', 'im_size', 'im_id']
+
+  dataset:
+    # 预测数据
+    !ImageFolder
+    anno_path: dataset/voc/label_list.txt
+
+    # 对于VOC、COCO等比赛数据集，可以不指定类别标签文件，use_default_label可以是true。
+    # 对于用户自定义数据，如果是VOC格式数据，use_default_label必须要设置成false，且需要提供label_list.txt。如果是COCO格式数据，不需要设置这个参数。
+    use_default_label: false
+
+    # 是否包含背景类，若with_background=true，num_classes需要+1
+    # YOLO 系列with_background必须是false，FasterRCNN系列是true ###
+    with_background: false
+
+
+  # 单张图的 transforms
+  sample_transforms:
+    # DecodeImage
+    - !DecodeImage
+      to_rgb: true
+    # 注意与上面图像尺寸保持一致
+    - !ResizeImage
+      target_size: 608
+      interp: 2
+    # NormalizeImage
+    - !NormalizeImage
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+      is_scale: true
+      is_channel_first: false
+    # Permute
+    - !Permute
+      to_bgr: false
+      channel_first: true

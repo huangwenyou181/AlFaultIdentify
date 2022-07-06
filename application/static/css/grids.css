@@ -1,0 +1,67 @@
+.selectList {
+    height: 10%;
+    background-color: #cfcfcf;
+    margin-bottom: 5px;
+    text-align: center;
+    border-radius: 10px;
+}
+
+.selectList>div {
+    display: inline-block;
+    height: 100%;
+    width: 100%
+}
+
+
+.selectList>div>span {
+    line-height: calc(100%);
+}
+
+#graphContainer {
+    height: calc(100vh - 355px);
+    background-color: #d8ebff;
+}
+
+@media screen and (max-width: 667px) {
+    #selectBar {
+        margin-left: -100% !important;
+        width: 0%;
+    }
+
+    #graph {
+        display: block;
+        margin-left: 85%;
+        width: 100% !important;
+    }
+
+    #graphContainer {
+        overflow-x: scroll;
+    }
+}
+
+#selectBar {
+    display: inline-block;
+    width: 15%;
+    height: 100%;
+    overflow: auto;
+}
+
+#selectBar>ul {
+    height: 100%;
+    border-radius: 15px
+}
+
+#graph {
+    padding: 0 15px;
+    display: inline-block;
+    width: calc(85% - 15px);
+    height: 100%;
+    background-color: #ffffff;
+    border-radius: 15px;
+    margin-left: 15px;
+}
+
+.display-block {
+    background-color: #d8ebff;
+    border-radius: 10px;
+}

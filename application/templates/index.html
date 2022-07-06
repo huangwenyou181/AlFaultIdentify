@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Home</title>
+    <!-- Meta Tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta name="keywords" content="" />
+    <script>
+        addEventListener("load", function () {
+            setTimeout(hideURLbar, 0);
+        }, false);
+
+        function hideURLbar() {
+            window.scrollTo(0, 1);
+        }
+    </script>
+
+
+    <!-- //Meta Tags -->
+
+    <!-- Style-sheets -->
+    <!-- Bootstrap Css -->
+    <link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet" type="text/css" media="all" />
+
+
+    <!-- Bootstrap Css -->
+    <!-- Bars Css -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bar.css') }}">
+    <!--// Bars Css -->
+    <!-- Common Css -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css" media="all" />
+    <!--// Common Css -->
+    <!-- Nav Css -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style4.css') }}">
+    <!--// Nav Css -->
+    <!-- Fontawesome Css -->
+    <link href="{{ url_for('static', filename='css/fontawesome-all.css') }}" rel="stylesheet">
+    <!--// Fontawesome Css -->
+    <!--// Style-sheets -->
+
+    <!--web-fonts-->
+    <link href="http://fonts.googleapis.com/css?family=Poiret+One" rel="stylesheet">
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
+    <!--//web-fonts-->
+
+
+    <!--my-Style-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <!--//my-Style-->
+
+    <!-- Required common Js -->
+    <!--
+        <script src="{{ url_for('static', filename='js/jquery-2.2.3.min.js') }}"></script>
+    -->
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.0.js">
+    </script>
+    <!-- //Required common Js -->
+
+    <!-- loading-gif Js -->
+    <script src="{{ url_for('static', filename='js/modernizr.js') }}"></script>
+    <script>
+        // Wait for window load
+        $(window).load(function () {
+            // Animate loader off screen
+            $(".se-pre-con").fadeOut("slow");;
+        });
+    </script>
+    <!--// loading-gif Js -->
+
+    <!-- Sidebar-nav Js -->
+    <script>
+        $(document).ready(function () {
+            $('#sidebarCollapse').on('click', function () {
+                $('#sidebar').toggleClass('active');
+            });
+        });
+    </script>
+    <!--// Sidebar-nav Js -->
+
+
+    <!-- profile-widget-dropdown js-->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <!--// profile-widget-dropdown js-->
+
+    <!-- dropdown nav -->
+    <script>
+        $(document).ready(function () {
+            $(".dropdown").hover(
+                function () {
+                    $('.dropdown-menu', this).stop(true, true).slideDown("fast");
+                    $(this).toggleClass('open');
+                },
+                function () {
+                    $('.dropdown-menu', this).stop(true, true).slideUp("fast");
+                    $(this).toggleClass('open');
+                }
+            );
+        });
+    </script>
+    <!-- //dropdown nav -->
+
+    <!-- Js for bootstrap working-->
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <!-- //Js for bootstrap working -->
+
+
+    <!--my-Script-->
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+    <!--//my-Script-->
+</head>
+
+<body>
+    <div class="se-pre-con"></div>
+    <div class="wrapper">
+        <!-- Sidebar Holder -->
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <h1>
+                    <a href="{{url_for('index')}}">花卉识别</a>
+                </h1>
+                <span>Intel</span>
+            </div>
+            <div class="profile-bg"></div>
+            <ul class="list-unstyled components">
+                <li class="active">
+                    <a href="{{url_for('index')}}">
+                        <i class="fas fa-th-large"></i>
+                        上传识别
+                    </a>
+                </li>
+                <!-- <li>
+                    <a href="{{url_for('grids')}}">
+                        <i class="fas fa-chart-pie"></i>
+                        历史识别
+                    </a>
+                </li> -->
+                <li>
+                    <!-- <a href="{{url_for('charts')}}">
+                        <i class="fas fa-th"></i>
+                        历史识别
+                    </a> -->
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Page Content Holder -->
+        <div id="content">
+            <!-- top-bar -->
+            <nav class="navbar navbar-default mb-xl-5 mb-4" style="margin-bottom: 1.5rem !important;">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <button type="button" id="sidebarCollapse" class="btn btn-info navbar-btn">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                    </div>
+                    <ul class="top-icons-agileits-w3layouts float-right">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="far fa-user"></i>
+                            </a>
+                            <div class="dropdown-menu drop-3">
+                                <div class="profile d-flex mr-o">
+                                    <div class="profile-r align-self-center">
+                                        <h3 class="sub-title-w3-agileits">{{ current_user.name }}</h3>
+                                    </div>
+                                </div>
+                                <a href="#" class="dropdown-item mt-3">
+                                    <h4>
+                                        <i class="far fa-user mr-3"></i>My Profile
+                                    </h4>
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="/logout">Logout</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            <!--// top-bar -->
+            <div class="container-fluid">
+                <div class="row">
+                    <!-- img-select -->
+                    <div class="outer-w3-agile col-xl display-block picture-block" style="height: 400px;">
+                        <div class="picture-container">
+
+                            <img src="static/test1.jpg" id="upload-image" class="row-xl-9 adaptiveImg"
+                                onload="imgAdaptive(this)">
+                        </div>
+                        <div class="upbutton-container row">
+                            <a href="#" class="button-a picture-block-button"><span>选择文件</span>
+                                <form action="/upImg" enctype="multipart/form-data" method="post">
+                                    <input type="file" class="a-input" style="cursor: pointer;" id="imageSelect"
+                                        onchange="fileSelect(this)">
+                                </form>
+                            </a>
+                            <button class="picture-block-button upload-button" onclick="imgPost()">上传</button>
+                        </div>
+                    </div>
+                    <!--// img-select -->
+                    <!-- img-download -->
+                    <div class="outer-w3-agile col-xl ml-xl-3 mt-xl-0 mt-3 display-block picture-block"
+                        style="height: 400px;">
+                        <div class="picture-container">
+                            <img src="static/default_processed.png" id="download-image" class="adaptiveImg"
+                                onload="imgAdaptive(this)">
+                        </div>
+                        <button class="picture-block-button getpic" onclick="postDownloadImage()"
+                            type="button">获取检测结果</button>
+                    </div>
+                    <!--// img-download -->
+                </div>
+            </div>
+            <!-- Result-Table -->
+            <div class="outer-w3-agile mt-3 display-block">
+                <h4 class="tittle-w3-agileits mb-4">识别结果</h4>
+                <!-- <table class="table table-dark"> -->
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th class="text-center">
+                                花名
+                                <br>
+                            </th>
+                            <th class="text-center">
+                                准确率
+                                <br>
+                            </th>
+                            <th class="text-center">
+                                相关说明
+                                <br>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultTable" style="min-width: 100%;">
+                    <tr>
+                        <th class="text-nowrap" scope="row">#1</th>
+                        <td colspan="3" class="text-center">No result.</td>
+                    </tr>
+                    </tbody>
+
+                </table>
+            </div>
+            <!--// Result-Table -->
+
+            <!-- Copyright -->
+            <div class="copyright-w3layouts py-xl-3 py-2 mt-xl-5 mt-4 text-center display-block"
+                style="margin-top: 9rem !important;">
+                <p>创新实践-第4小组</p>
+            </div>
+            <!--// Copyright -->
+        </div>
+    </div>
+
+
+
+
+</body>
+
+</html>
